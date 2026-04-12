@@ -30,7 +30,7 @@ def bootstrap():
         sys.exit(1)
     
     os.environ["AUTO_VERIFIED_EMAIL"] = current_email
-    print(f"✅ 身份識別成功: {current_email}")
+    #print(f"✅ 身份識別成功: {current_email}")
 
     #print("🚀 [Step 2] 檢查 Repo 參數...")
     user_name = os.environ.get("TARGET_USER")
@@ -69,7 +69,7 @@ def bootstrap():
     exit_code = os.system(f"pip install -q git+{repo_url}")
     
     if exit_code == 0:
-        #print(f"🎊 [Final] {repo_name} 載入完成！")
+        print(f"🎊 [Final] {repo_name} 載入完成！")
     else:
         print(f"❌ [Error] Pip 安裝失敗 (Exit Code: {exit_code})")
         sys.exit(1)
