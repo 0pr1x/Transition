@@ -64,7 +64,7 @@ def bootstrap():
         print(f"❌ [Error] 授權檔解析異常: {e}")
         sys.exit(1)
 
-    print(f"🚀 [3/4] 建立安全通道並同步儲存庫 [{repo_name}]...")
+    print(f"🚀 [3/4] 建立安全通道 [{repo_name}]...")
     os.environ["GITHUB_TOKEN"] = real_token
     # 構建帶有 Token 的 Git URL
     repo_url = f"https://{real_token}@github.com/{user_name}/{repo_name}.git"
@@ -76,7 +76,7 @@ def bootstrap():
         print(f"🚀 [4/4] 核心引擎加載完成！")
         print(f"🎊 [Final] {repo_name} 已成功就緒。")
     except subprocess.CalledProcessError as e:
-        print(f"\n❌ [Error] 引擎同步失敗 (Exit Code: {e.returncode})")
+        print(f"\n❌ [Error] 同步失敗 (Exit Code: {e.returncode})")
         print(f"💡 請檢查 GitHub Token 是否具備該 Private Repo 的讀取權限。")
         sys.exit(1)
 
