@@ -6,26 +6,31 @@ import subprocess
 LICENSE_PATH = "/content/drive/MyDrive/Whisper_Models/license.key"
 SALT = "WTusingOnlyidX2"
 
-def bootstrap():
-    print("🚀 [Step 1] 開始身分檢查...")
-    current_email = subprocess.getoutput("gcloud config get-value account 2>/dev/null").strip()
-
-    if not current_email or "(unset)" in current_email:
-        print("🔐 [Info] 偵測到身分未驗證，啟動 Google Auth...")
-        try:
+def get_current_email():
+    try:
+        # 增加 2>/dev/null 屏蔽錯誤輸出，並 strip() 清除換行
+        email = subprocess.getoutput("gcloud config get-value account 2>/dev/null").strip()
+        
+        # 💡 如果靜默抓取失敗，主動嘗試觸發一次 auth
+        if not email or "(unset)" in email:
             from google.colab import auth
             auth.authenticate_user()
-            current_email = subprocess.getoutput("gcloud config get-value account 2>/dev/null").strip()
-        except Exception as e:
-            print(f"❌ [Error] 授權視窗喚起失敗: {e}")
-            sys.exit(1)
+            email = subprocess.getoutput("gcloud config get-value account 2>/dev/null").strip()
+        return email
+    except:
+        return None
 
-    if not current_email or "(unset)" in current_email:
-        print("❌ [Error] 最終仍無法取得 Email，請重新執行並允許授權。")
+def bootstrap():
+    print("🚀 [Step 1] 開始身分檢查...")
+    current_email = get_current_email()
+
+    if not current_email:
+        print("❌ [Error] 無法識別 Google 帳號身分。")
+        print("💡 請先在 Colab 執行: from google.colab import auth; auth.authenticate_user()")
         sys.exit(1)
     
     os.environ["AUTO_VERIFIED_EMAIL"] = current_email
-    print(f"✅ [Success] 身分確認: {current_email}")
+    print(f"✅ 身份識別成功: {current_email}")
 
     print("🚀 [Step 2] 檢查 Repo 參數...")
     user_name = os.environ.get("TARGET_USER")
