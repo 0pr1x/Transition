@@ -5,17 +5,21 @@ import subprocess
 
 LICENSE_PATH = "/content/drive/MyDrive/Whisper_Models/license.key"
 SALT = "WTusingOnlyidX2"
+_BOOTSTRAP_DONE = False
 
 def bootstrap():
+    global _BOOTSTRAP_DONE
+    if _BOOTSTRAP_DONE:
+        return
+
     print("🚀 [1/4] 啟動身分安全檢查...")
-    
+
     from google.colab import drive
     if not os.path.isdir("/content/drive/MyDrive"):
         drive.mount("/content/drive")
     else:
         print("✅ Drive 已掛載，跳過。")
-    
-    # drive.mount 後 gcloud 需要一點時間同步，加重試機制
+
     import time
     email = ""
     for _ in range(5):
@@ -23,8 +27,7 @@ def bootstrap():
         if email and "(unset)" not in email:
             break
         time.sleep(2)
-    
-    # 若 gcloud 還是抓不到，改用 colab auth 取得
+
     if not email or "(unset)" in email:
         try:
             from google.colab import auth
@@ -32,11 +35,11 @@ def bootstrap():
             email = subprocess.getoutput("gcloud config get-value account 2>/dev/null").strip()
         except Exception:
             pass
-    
+
     if not email or "(unset)" in email:
         print("❌ [Error] 無法識別 Google 帳號身分。")
         sys.exit(1)
-    
+
     os.environ["AUTO_VERIFIED_EMAIL"] = email
     print(f"👤 已識別帳號: {email}")
 
@@ -65,7 +68,6 @@ def bootstrap():
 
     os.environ["GITHUB_TOKEN"] = real_token
 
-    # 套件安裝判斷在這裡，不在 Notebook
     try:
         import whisper_tool
         print("✅ [3/4] 套件已存在，跳過安裝。")
@@ -80,6 +82,8 @@ def bootstrap():
             print(f"\n❌ [Error] 同步失敗 (Exit Code: {e.returncode})")
             print(f"💡 請檢查 GitHub Token 是否具備該 Private Repo 的讀取權限。")
             sys.exit(1)
+
+    _BOOTSTRAP_DONE = True
 
 if __name__ == "__main__":
     bootstrap()
