@@ -14,8 +14,25 @@ def bootstrap():
         drive.mount("/content/drive")
     else:
         print("✅ Drive 已掛載，跳過。")
-
-    email = subprocess.getoutput("gcloud config get-value account 2>/dev/null").strip()
+    
+    # drive.mount 後 gcloud 需要一點時間同步，加重試機制
+    import time
+    email = ""
+    for _ in range(5):
+        email = subprocess.getoutput("gcloud config get-value account 2>/dev/null").strip()
+        if email and "(unset)" not in email:
+            break
+        time.sleep(2)
+    
+    # 若 gcloud 還是抓不到，改用 colab auth 取得
+    if not email or "(unset)" in email:
+        try:
+            from google.colab import auth
+            auth.authenticate_user()
+            email = subprocess.getoutput("gcloud config get-value account 2>/dev/null").strip()
+        except Exception:
+            pass
+    
     if not email or "(unset)" in email:
         print("❌ [Error] 無法識別 Google 帳號身分。")
         sys.exit(1)
