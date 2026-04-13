@@ -24,15 +24,22 @@ def get_current_email():
 
 def bootstrap():
     print("🚀 [1/4] 啟動身分安全檢查...")
-    current_email = get_current_email()
-
-    if not current_email or "(unset)" in current_email:
+    
+    # 認證 + 掛載 Drive 集中在這裡
+    from google.colab import auth, drive
+    auth.authenticate_user()
+    drive.mount("/content/drive", force_remount=False)
+    
+    # 取得 email
+    import subprocess
+    email = subprocess.getoutput("gcloud config get-value account 2>/dev/null").strip()
+    if not email or "(unset)" in email:
         print("❌ [Error] 無法識別 Google 帳號身分。")
-        print("💡 請先在 Colab 執行: from google.colab import auth; auth.authenticate_user()")
         sys.exit(1)
     
-    # 注入環境變數供 processor.py 使用
-    os.environ["AUTO_VERIFIED_EMAIL"] = current_email
+    os.environ["AUTO_VERIFIED_EMAIL"] = email
+    print(f"👤 已識別帳號: {email}")
+    
 
     # 檢查 Repo 參數
     user_name = os.environ.get("TARGET_USER")
