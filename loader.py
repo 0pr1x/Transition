@@ -20,28 +20,25 @@ def bootstrap():
     else:
         print("✅ Drive 已掛載，跳過。")
 
-    import time
-    email = ""
-    for _ in range(5):
-        email = subprocess.getoutput("gcloud config get-value account 2>/dev/null").strip()
-        if email and "(unset)" not in email:
-            break
-        time.sleep(2)
+    # 直接讀 gcloud config 檔，不跑子行程、不觸發任何認證
+    email = None
+    try:
+        with open("/root/.config/gcloud/properties", "r") as f:
+            for line in f:
+                if line.strip().startswith("account"):
+                    email = line.split("=")[1].strip()
+                    break
+    except Exception:
+        pass
 
-    if not email or "(unset)" in email:
-        try:
-            from google.colab import auth
-            auth.authenticate_user()
-            email = subprocess.getoutput("gcloud config get-value account 2>/dev/null").strip()
-        except Exception:
-            pass
-
-    if not email or "(unset)" in email:
+    if not email:
         print("❌ [Error] 無法識別 Google 帳號身分。")
         sys.exit(1)
 
     os.environ["AUTO_VERIFIED_EMAIL"] = email
     print(f"👤 已識別帳號: {email}")
+
+    # 後續授權驗證不變...
 
     user_name = os.environ.get("TARGET_USER")
     repo_name = os.environ.get("TARGET_REPO")
