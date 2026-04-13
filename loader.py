@@ -25,12 +25,15 @@ def get_current_email():
 def bootstrap():
     print("🚀 [1/4] 啟動身分安全檢查...")
     
-    # 認證 + 掛載 Drive 集中在這裡
     from google.colab import auth, drive
     auth.authenticate_user()
-    drive.mount("/content/drive", force_remount=False)
     
-    # 取得 email
+    # 檢查是否已掛載再決定要不要 mount
+    if not os.path.isdir("/content/drive/MyDrive"):
+        drive.mount("/content/drive")
+    else:
+        print("✅ Drive 已掛載，跳過。")
+    
     import subprocess
     email = subprocess.getoutput("gcloud config get-value account 2>/dev/null").strip()
     if not email or "(unset)" in email:
