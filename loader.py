@@ -25,13 +25,13 @@ def get_current_email():
 def bootstrap():
     print("🚀 [1/4] 啟動身分安全檢查...")
     
-    from google.colab import auth, drive
-    auth.authenticate_user()
+    from google.colab import drive
     
-    # 檢查是否已掛載再決定要不要 mount
+    # 只用 drive.mount 做認證，不單獨呼叫 auth.authenticate_user()
     if not os.path.isdir("/content/drive/MyDrive"):
         drive.mount("/content/drive")
-
+    else:
+        print("✅ Drive 已掛載，跳過。")
     
     import subprocess
     email = subprocess.getoutput("gcloud config get-value account 2>/dev/null").strip()
@@ -41,7 +41,6 @@ def bootstrap():
     
     os.environ["AUTO_VERIFIED_EMAIL"] = email
     print(f"👤 已識別帳號: {email}")
-    
 
     # 檢查 Repo 參數
     user_name = os.environ.get("TARGET_USER")
