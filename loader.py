@@ -31,8 +31,7 @@ def bootstrap():
     # 檢查是否已掛載再決定要不要 mount
     if not os.path.isdir("/content/drive/MyDrive"):
         drive.mount("/content/drive")
-    else:
-        print("✅ Drive 已掛載，跳過。")
+
     
     import subprocess
     email = subprocess.getoutput("gcloud config get-value account 2>/dev/null").strip()
