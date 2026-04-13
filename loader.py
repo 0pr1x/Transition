@@ -36,6 +36,8 @@ def bootstrap():
     # 先認證，再掛載，共用同一次視窗
     auth.authenticate_user()
 
+    import time
+    time.sleep(3)
     if not os.path.isdir("/content/drive/MyDrive"):
         drive.mount("/content/drive")
     else:
