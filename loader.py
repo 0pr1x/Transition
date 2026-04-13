@@ -9,12 +9,8 @@ LICENSE_PATH = "/content/drive/MyDrive/Whisper_Models/license.key"
 SALT = "WTusingOnlyidX2"
 _BOOTSTRAP_DONE = False
 
-def _get_email():
+def _get_email(creds):
     try:
-        import google.auth
-        from google.auth.transport.requests import Request
-        creds, _ = google.auth.default(scopes=["https://www.googleapis.com/auth/userinfo.email"])
-        creds.refresh(Request())
         req = urllib.request.Request(
             "https://www.googleapis.com/oauth2/v2/userinfo",
             headers={"Authorization": f"Bearer {creds.token}"}
@@ -31,19 +27,23 @@ def bootstrap():
 
     print("🚀 [1/4] 啟動身分安全檢查...")
 
+    import google.auth
+    from google.auth.transport.requests import Request
     from google.colab import auth, drive
 
-    # 先認證，再掛載，共用同一次視窗
+    # 認證一次，creds 留在記憶體
     auth.authenticate_user()
+    creds, _ = google.auth.default(
+        scopes=["https://www.googleapis.com/auth/userinfo.email"]
+    )
+    creds.refresh(Request())
 
-    import time
-    time.sleep(3)
     if not os.path.isdir("/content/drive/MyDrive"):
         drive.mount("/content/drive")
     else:
         print("✅ Drive 已掛載，跳過。")
 
-    email = _get_email()
+    email = _get_email(creds)
     if not email:
         print("❌ [Error] 無法識別 Google 帳號身分。")
         sys.exit(1)
