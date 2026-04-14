@@ -31,25 +31,28 @@ def bootstrap():
     from google.auth.transport.requests import Request
     from google.colab import auth, drive
 
-    # 認證一次，creds 留在記憶體
+    # ✅ 修正（問題3）：唯一一次認證，立刻 refresh 讓 token 生效
     auth.authenticate_user()
     creds, _ = google.auth.default(
         scopes=["https://www.googleapis.com/auth/userinfo.email"]
     )
     creds.refresh(Request())
 
-    if not os.path.isdir("/content/drive/MyDrive"):
-        drive.mount("/content/drive")
-    else:
-        print("✅ Drive 已掛載，跳過。")
-
+    # ✅ 修正（問題3）：email 在 drive.mount() 之前取得
+    # 確保 token 已生效時立即記錄，不受 Drive 掛載結果影響
     email = _get_email(creds)
     if not email:
         print("❌ [Error] 無法識別 Google 帳號身分。")
         sys.exit(1)
-
     os.environ["AUTO_VERIFIED_EMAIL"] = email
     print(f"👤 已識別帳號: {email}")
+
+    # ✅ 修正（問題3）：明確加上 force_remount=False，防止重複認證
+    if not os.path.isdir("/content/drive/MyDrive"):
+        print("📂 掛載 Google Drive...")
+        drive.mount("/content/drive", force_remount=False)
+    else:
+        print("✅ Drive 已掛載，跳過。")
 
     user_name = os.environ.get("TARGET_USER")
     repo_name = os.environ.get("TARGET_REPO")
